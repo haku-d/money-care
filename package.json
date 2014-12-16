@@ -1,0 +1,16 @@
+{
+	"name": "rest-api",
+	"main": "server.js",
+	"dependencies": {
+		"express": "~4.0.0",
+		"mongoose": "~3.6.13",
+		"body-parser": "~1.0.1",
+		"grunt": "~0.4.5"
+	},
+	"devDependencies": {
+		"grunt": "~0.4.5",
+        "grunt-cli": "~0.1.13",
+        "grunt-express-server": "~0.4.19",
+        "grunt-contrib-watch": "~0.6.1"
+	}
+}
