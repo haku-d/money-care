@@ -4,16 +4,40 @@
 var express    = require('express'); 		// call express
 var app        = express(); 				// define our app using express
 var bodyParser = require('body-parser');
+var morgan	   = require('morgan');
+var passport   = require('passport');
+var FacebookStrategy = require('passport-facebook');
+var util = require('util');
+var session = require('express-session');
+var cookieParser = require("cookie-parser");
 
 var mongoose	= require('mongoose');
-	mongoose.connect('mongodb://ccma:letmein@proximus.modulusmongo.net:27017/ox9uTixi');
+	mongoose.connect('mongodb://127.0.0.1:27017');
 
 var Bear     = require('./app/models/bear');
+var User 	 = require('./app/models/user');
 
 // configure app to use bodyParser()
 // this will let us get the data from a POST
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
+app.use(morgan('combined')); // set app logger
+app.use(cookieParser());
+app.use(session({ secret: 'keyboard cat' }));
+app.use(passport.initialize());
+app.use(passport.session());
+
+passport.use(new FacebookStrategy({
+    	clientID: '659090967545948',
+    	clientSecret: 'bbb15368050ed70ea19209eed210d17b',
+    	callbackURL: "http://localhost:3000/api/auth/facebook/callback"
+  	},
+  	function(accessToken, refreshToken, profile, done) {
+  		User.findOneAndUpdate({ facebookId: profile.id }, {}, {upsert: true}, function (err, user) {
+	      	return done(err, user);
+	    });
+  	}
+));
 
 var port = process.env.PORT || 8080; 		// set our port
 
@@ -29,6 +53,14 @@ router.use(function(req, res, next){
 router.get('/', function(req, res) {
 	res.json({ message: 'hooray! welcome to our api!' });
 });
+
+router.get('/auth/facebook', passport.authenticate('facebook'));
+
+router.get('/auth/facebook/callback', 
+	passport.authenticate('facebook', { failureRedirect: '/login' }), 
+	function(req, res){
+		res.redirect('/');
+	});
 
 router.route('/bears')
 
