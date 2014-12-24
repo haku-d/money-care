@@ -17,23 +17,43 @@ var mongoose	= require('mongoose');
 var Bear     = require('./app/models/bear');
 var User 	 = require('./app/models/user');
 
+var FACEBOOK_APP_ID = '659090967545948';
+var FACEBOOK_APP_SECRET = 'bbb15368050ed70ea19209eed210d17b';
+
+passport.serializeUser(function(user, done) {
+  done(null, user);
+});
+
+passport.deserializeUser(function(obj, done) {
+  done(null, obj);
+});
+
 // configure app to use bodyParser()
 // this will let us get the data from a POST
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(morgan('combined')); // set app logger
 app.use(cookieParser());
-app.use(session({ secret: 'keyboard cat' }));
+app.use(session({
+  	secret: 'keyboard cat',
+  	resave: false,
+  	saveUninitialized: true
+}))
 app.use(passport.initialize());
 app.use(passport.session());
 
 passport.use(new FacebookStrategy({
-    	clientID: '659090967545948',
-    	clientSecret: 'bbb15368050ed70ea19209eed210d17b',
+    	clientID: FACEBOOK_APP_ID,
+    	clientSecret: FACEBOOK_APP_SECRET,
     	callbackURL: "http://localhost:3000/api/auth/facebook/callback"
   	},
   	function(accessToken, refreshToken, profile, done) {
-  		User.findOneAndUpdate({ facebookId: profile.id }, {}, {upsert: true}, function (err, user) {
+  		User.findOneAndUpdate({ 
+  			facebookId: profile.id 
+  		}, {
+  			facebookId: profile.id,
+  			facebookProfile: profile
+  		}, {upsert: true}, function (err, user) {
 	      	return done(err, user);
 	    });
   	}
